@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -30,7 +31,11 @@ class MainActivity : AppCompatActivity() {
         gameScoreTextView = findViewById(R.id.game_score_text_view)
         timeLeftTextView = findViewById(R.id.time_left_text_view)
         tapMeButton = findViewById(R.id.tap_me_button)
-        tapMeButton.setOnClickListener { incrementScore() }
+
+        tapMeButton.setOnClickListener { view ->
+            view.startAnimation(AnimationUtils.loadAnimation(this, R.anim.bounce))
+            incrementScore()
+        }
 
         if (savedInstanceState != null ){
             var restoredScore = savedInstanceState.getInt(SCORE_KEY)
@@ -83,7 +88,7 @@ class MainActivity : AppCompatActivity() {
         countDownTimer = object : CountDownTimer((timeLeft * 1000).toLong(), countDownInterval) {
             override fun onTick(millisUntilFinished: Long) {
                 timeLeft = millisUntilFinished.toInt() / 1000
-                timeLeftTextView.text = getString(R.string.time_left, timeLeft) 
+                timeLeftTextView.text = getString(R.string.time_left, timeLeft)
             }
 
             override fun onFinish() {
