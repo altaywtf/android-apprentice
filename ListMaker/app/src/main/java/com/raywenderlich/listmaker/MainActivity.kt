@@ -7,7 +7,6 @@ import android.text.InputType
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
-import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 import com.raywenderlich.listmaker.databinding.MainActivityBinding
 import com.raywenderlich.listmaker.ui.detail.ListDetailActivity
@@ -32,7 +31,7 @@ class MainActivity : AppCompatActivity(), MainFragment.MainFragmentInteractionLi
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.container, MainFragment.newInstance(this))
+                .replace(R.id.detail_container, MainFragment.newInstance(this))
                 .commitNow()
         }
 
