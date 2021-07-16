@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.raywenderlich.listmaker.databinding.MainFragmentBinding
 
@@ -24,14 +25,23 @@ class MainFragment : Fragment() {
     ): View {
         binding = MainFragmentBinding.inflate(inflater, container, false)
         binding.listsRecyclerview.layoutManager = LinearLayoutManager(requireContext())
-        binding.listsRecyclerview.adapter = ListSelectionRecyclerViewAdapter()
         return binding.root
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        // TODO: Use the ViewModel
-    }
 
+        val activity = requireActivity()
+        viewModel = ViewModelProvider(
+            activity,
+            MainViewModelFactory(PreferenceManager.getDefaultSharedPreferences(activity))
+        ).get(MainViewModel::class.java)
+
+        val recyclerViewAdapter = ListSelectionRecyclerViewAdapter(viewModel.lists)
+        binding.listsRecyclerview.adapter = recyclerViewAdapter
+
+        viewModel.onListAdded = {
+            recyclerViewAdapter.listsUpdated()
+        }
+    }
 }

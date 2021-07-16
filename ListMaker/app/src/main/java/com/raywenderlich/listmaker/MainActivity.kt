@@ -52,6 +52,8 @@ class MainActivity : AppCompatActivity() {
         builder.setView(listTitleEditText)
 
         builder.setPositiveButton(positiveButtonTitle) { dialog, _ ->
+            val taskList = TaskList(listTitleEditText.text.toString())
+            viewModel.saveList(taskList)
             dialog.dismiss()
         }
 
