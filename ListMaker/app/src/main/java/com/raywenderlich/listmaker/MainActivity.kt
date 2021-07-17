@@ -1,5 +1,6 @@
 package com.raywenderlich.listmaker
 
+import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -9,6 +10,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.raywenderlich.listmaker.databinding.MainActivityBinding
+import com.raywenderlich.listmaker.models.TaskList
 import com.raywenderlich.listmaker.ui.detail.ListDetailActivity
 import com.raywenderlich.listmaker.ui.main.MainFragment
 import com.raywenderlich.listmaker.ui.main.MainViewModel
@@ -40,6 +42,17 @@ class MainActivity : AppCompatActivity(), MainFragment.MainFragmentInteractionLi
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == LIST_DETAIL_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            data?.let {
+                viewModel.updateList(data.getParcelableExtra(INTENT_LIST_KEY)!!)
+                viewModel.refreshLists()
+            }
+        }
+    }
+
     private fun showCreateListDialog() {
         val dialogTitle = getString(R.string.name_of_list)
         val positiveButtonTitle = getString(R.string.create_list)
@@ -66,7 +79,7 @@ class MainActivity : AppCompatActivity(), MainFragment.MainFragmentInteractionLi
     private fun showListDetail(list: TaskList) {
         var listDetailIntent = Intent(this, ListDetailActivity::class.java)
         listDetailIntent.putExtra(INTENT_LIST_KEY, list)
-        startActivity(listDetailIntent)
+        startActivityForResult(listDetailIntent, LIST_DETAIL_REQUEST_CODE)
     }
 
     // MainFragmentInteractionListener
@@ -76,5 +89,6 @@ class MainActivity : AppCompatActivity(), MainFragment.MainFragmentInteractionLi
 
     companion object {
         const val INTENT_LIST_KEY = "list"
+        const val LIST_DETAIL_REQUEST_CODE = 123
     }
 }

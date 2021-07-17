@@ -1,5 +1,7 @@
 package com.raywenderlich.listmaker.ui.detail
 
+import android.app.Activity
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.InputType
@@ -8,7 +10,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.raywenderlich.listmaker.MainActivity
 import com.raywenderlich.listmaker.R
-import com.raywenderlich.listmaker.TaskList
 import com.raywenderlich.listmaker.databinding.ListDetailActivityBinding
 import com.raywenderlich.listmaker.ui.detail.ui.detail.ListDetailFragment
 import com.raywenderlich.listmaker.ui.detail.ui.detail.ListDetailViewModel
@@ -36,6 +37,16 @@ class ListDetailActivity : AppCompatActivity() {
                 .replace(R.id.detail_container, ListDetailFragment.newInstance())
                 .commitNow()
         }
+    }
+
+    override fun onBackPressed() {
+        val bundle = Bundle()
+        bundle.putParcelable(MainActivity.INTENT_LIST_KEY, viewModel.list)
+
+        val intent = Intent()
+        intent.putExtras(bundle)
+        setResult(Activity.RESULT_OK, intent)
+        super.onBackPressed()
     }
 
     private fun showCreateTaskDialog() {

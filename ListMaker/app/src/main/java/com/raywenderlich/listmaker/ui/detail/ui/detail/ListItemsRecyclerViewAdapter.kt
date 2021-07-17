@@ -3,7 +3,7 @@ package com.raywenderlich.listmaker.ui.detail.ui.detail
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.raywenderlich.listmaker.TaskList
+import com.raywenderlich.listmaker.models.TaskList
 import com.raywenderlich.listmaker.databinding.ListItemViewHolderBinding
 
 class ListItemsRecyclerViewAdapter(var list: TaskList): RecyclerView.Adapter<ListItemViewHolder>() {

@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.raywenderlich.listmaker.TaskList
+import com.raywenderlich.listmaker.models.TaskList
 import com.raywenderlich.listmaker.databinding.MainFragmentBinding
 
 class MainFragment(var interactionListener: MainFragmentInteractionListener): Fragment(), ListSelectionRecyclerViewAdapter.ListSelectionRecyclerViewClickListener {
