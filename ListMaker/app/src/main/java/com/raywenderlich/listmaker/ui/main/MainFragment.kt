@@ -11,7 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.raywenderlich.listmaker.models.TaskList
 import com.raywenderlich.listmaker.databinding.MainFragmentBinding
 
-class MainFragment(var interactionListener: MainFragmentInteractionListener): Fragment(), ListSelectionRecyclerViewAdapter.ListSelectionRecyclerViewClickListener {
+class MainFragment: Fragment(), ListSelectionRecyclerViewAdapter.ListSelectionRecyclerViewClickListener {
+    lateinit var clickListener: MainFragmentInteractionListener
+
     interface MainFragmentInteractionListener {
         fun listItemTapped(list: TaskList)
     }
@@ -19,7 +21,7 @@ class MainFragment(var interactionListener: MainFragmentInteractionListener): Fr
     private lateinit var binding: MainFragmentBinding
 
     companion object {
-        fun newInstance(interactionListener: MainFragmentInteractionListener) = MainFragment(interactionListener)
+        fun newInstance() = MainFragment()
     }
 
     private lateinit var viewModel: MainViewModel
@@ -52,6 +54,6 @@ class MainFragment(var interactionListener: MainFragmentInteractionListener): Fr
 
     // ListSelectionRecyclerViewClickListener
     override fun listItemClicked(list: TaskList) {
-        interactionListener.listItemTapped(list)
+        clickListener.listItemTapped(list)
     }
 }
