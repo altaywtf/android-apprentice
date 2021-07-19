@@ -1,7 +1,12 @@
 package com.raywenderlich.placebook
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import androidx.core.app.ActivityCompat
+import com.google.android.gms.location.*
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -11,10 +16,14 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.raywenderlich.placebook.databinding.ActivityMapsBinding
 
+
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+    private var locationRequest: LocationRequest? = null
 
     private lateinit var map: GoogleMap
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var binding: ActivityMapsBinding
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +35,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        setupLocationClient()
     }
 
     /**
@@ -39,10 +50,91 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
+        getCurrentLocation()
+    }
 
-        // Add a marker in Sydney and move the camera
-        val sydney = LatLng(-34.0, 151.0)
-        map.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        map.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+    private fun setupLocationClient() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+    }
+
+    private fun requestLocationPermissions() {
+        ActivityCompat.requestPermissions(
+            this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            REQUEST_LOCATION
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_LOCATION) {
+            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                getCurrentLocation()
+            } else {
+                Log.e(TAG, "Location permission denied")
+            }
+        }
+    }
+
+    private fun getCurrentLocation() {
+        val locationPermission = ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+
+        if (locationPermission != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermissions()
+        } else {
+            if (locationRequest == null) {
+                registerLocationRequest()
+            }
+
+            fusedLocationClient.lastLocation.addOnCompleteListener {
+                val location = it.result
+                if (location != null) {
+                    updateMapMarker(LatLng(location.latitude, location.longitude))
+                } else {
+                    Log.e(TAG, "No location found")
+                }
+            }
+        }
+    }
+
+    private fun registerLocationRequest() {
+        val locationPermission = ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+
+        if (locationPermission == PackageManager.PERMISSION_GRANTED) {
+            locationRequest = LocationRequest.create()
+            locationRequest?.let {
+                it.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+                it.interval = 5000
+                it.fastestInterval = 1000
+
+                val locationCallback = object : LocationCallback() {
+                    override fun onLocationResult(p0: LocationResult) {
+                        getCurrentLocation()
+                    }
+                }
+
+                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+            }
+        }
+    }
+
+    private fun updateMapMarker(coordinates: LatLng) {
+        map.clear()
+        map.addMarker(MarkerOptions().position(coordinates).title("You are here!"))
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinates, 16.0f))
+    }
+
+    companion object {
+        private const val REQUEST_LOCATION = 1
+        private const val TAG = "MapsActivity"
     }
 }
