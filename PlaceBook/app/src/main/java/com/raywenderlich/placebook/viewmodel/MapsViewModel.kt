@@ -2,6 +2,7 @@ package com.raywenderlich.placebook.viewmodel
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import com.google.android.libraries.places.api.model.Place
 import com.raywenderlich.placebook.repository.BookmarkRepo

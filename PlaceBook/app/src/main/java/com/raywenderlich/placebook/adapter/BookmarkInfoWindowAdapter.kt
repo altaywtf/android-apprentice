@@ -6,6 +6,7 @@ import android.view.View
 import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter
 import com.google.android.gms.maps.model.Marker
 import com.raywenderlich.placebook.databinding.ContentBookmarkInfoBinding
+import com.raywenderlich.placebook.ui.MapsActivity
 
 class BookmarkInfoWindowAdapter(context: Activity): InfoWindowAdapter {
     private val binding = ContentBookmarkInfoBinding.inflate(context.layoutInflater)
@@ -17,7 +18,7 @@ class BookmarkInfoWindowAdapter(context: Activity): InfoWindowAdapter {
     override fun getInfoContents(marker: Marker): View {
         binding.title.text = marker.title ?: ""
         binding.phone.text = marker.snippet ?: ""
-        binding.photo.setImageBitmap(marker.tag as Bitmap)
+        binding.photo.setImageBitmap((marker.tag as MapsActivity.PlaceInfo).image)
 
         return binding.root
     }

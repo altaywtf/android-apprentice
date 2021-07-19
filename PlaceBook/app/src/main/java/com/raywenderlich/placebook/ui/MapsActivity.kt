@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.*
@@ -23,6 +24,9 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.raywenderlich.placebook.R
 import com.raywenderlich.placebook.adapter.BookmarkInfoWindowAdapter
 import com.raywenderlich.placebook.databinding.ActivityMapsBinding
+import com.raywenderlich.placebook.viewmodel.MapsViewModel
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -31,6 +35,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private lateinit var placesClient: PlacesClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private val mapsViewModel by viewModels<MapsViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,9 +64,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-        map.setInfoWindowAdapter(BookmarkInfoWindowAdapter(this))
-        map.setOnPoiClickListener { displayPoi(it)  }
+        setupMapListeners()
         getCurrentLocation()
+    }
+
+    private fun setupMapListeners() {
+        map.setOnPoiClickListener { displayPoi(it)  }
+        map.setInfoWindowAdapter(BookmarkInfoWindowAdapter(this))
+        map.setOnInfoWindowClickListener { handleInfoWindowClick(it) }
     }
 
     private fun setupPlacesClient() {
@@ -166,14 +177,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun displayPoiDisplayStep(place: Place, photo: Bitmap?) {
-        val iconPhoto = if (photo == null) {
-            Log.v(TAG, "Photo null")
-            BitmapDescriptorFactory.defaultMarker()
-        } else {
-            Log.v(TAG, "Photo not null: ${photo.generationId}")
-            BitmapDescriptorFactory.fromBitmap(photo)
-        }
-
         val marker = map.addMarker(
             MarkerOptions()
                 .position(place.latLng as LatLng)
@@ -181,11 +184,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 .snippet(place.phoneNumber)
         )
 
-        marker?.tag = photo
+        marker?.tag = PlaceInfo(place, photo)
+    }
+
+    private fun handleInfoWindowClick(marker: Marker) {
+        val placeInfo = marker.tag as PlaceInfo
+
+        if (placeInfo.place != null) {
+            GlobalScope.launch {
+                mapsViewModel.addBookmarkFromPlace(placeInfo.place, placeInfo.image)
+            }
+        }
+
+        marker.remove()
     }
 
     companion object {
         private const val REQUEST_LOCATION = 1
         private const val TAG = "MapsActivity"
     }
+
+    class PlaceInfo(val place: Place? = null, val image: Bitmap? = null)
 }
