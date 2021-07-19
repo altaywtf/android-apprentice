@@ -18,8 +18,6 @@ import com.raywenderlich.placebook.databinding.ActivityMapsBinding
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
-    private var locationRequest: LocationRequest? = null
-
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var binding: ActivityMapsBinding
@@ -88,49 +86,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         if (locationPermission != PackageManager.PERMISSION_GRANTED) {
             requestLocationPermissions()
         } else {
-            if (locationRequest == null) {
-                registerLocationRequest()
-            }
-
+            map.isMyLocationEnabled = true
             fusedLocationClient.lastLocation.addOnCompleteListener {
                 val location = it.result
                 if (location != null) {
-                    updateMapMarker(LatLng(location.latitude, location.longitude))
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 16.0f))
                 } else {
                     Log.e(TAG, "No location found")
                 }
             }
         }
-    }
-
-    private fun registerLocationRequest() {
-        val locationPermission = ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-
-        if (locationPermission == PackageManager.PERMISSION_GRANTED) {
-            locationRequest = LocationRequest.create()
-            locationRequest?.let {
-                it.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-                it.interval = 5000
-                it.fastestInterval = 1000
-
-                val locationCallback = object : LocationCallback() {
-                    override fun onLocationResult(p0: LocationResult) {
-                        getCurrentLocation()
-                    }
-                }
-
-                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
-            }
-        }
-    }
-
-    private fun updateMapMarker(coordinates: LatLng) {
-        map.clear()
-        map.addMarker(MarkerOptions().position(coordinates).title("You are here!"))
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinates, 16.0f))
     }
 
     companion object {
