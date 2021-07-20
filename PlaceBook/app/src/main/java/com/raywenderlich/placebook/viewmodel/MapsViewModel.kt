@@ -26,6 +26,9 @@ class MapsViewModel(application: Application): AndroidViewModel(application) {
         bookmark.address = place.address.toString()
 
         val newId = bookmarkRepo.addBookmark(bookmark)
+        image?.let {
+            bookmark.setImage(it, getApplication())
+        }
     }
 
     private fun bookmarkToMarkerView(bookmark: Bookmark): BookMarkerView {
