@@ -190,6 +190,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun handleInfoWindowClick(marker: Marker) {
+        // crash
         val placeInfo = marker.tag as PlaceInfo
 
         if (placeInfo.place != null) {
@@ -206,6 +207,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val marker = map.addMarker(
             MarkerOptions()
                 .position(bookmark.location)
+                .title(bookmark.name)
+                .snippet(bookmark.phone)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
                 .alpha(0.8f)
         )
