@@ -186,6 +186,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         )
 
         marker?.tag = PlaceInfo(place, photo)
+        marker?.showInfoWindow()
     }
 
     private fun handleInfoWindowClick(marker: Marker) {
