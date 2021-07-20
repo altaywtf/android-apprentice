@@ -65,6 +65,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         setupMapListeners()
+        createBookmarkMarkerObserver()
         getCurrentLocation()
     }
 
@@ -197,6 +198,30 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         marker.remove()
+    }
+
+    // presenting bookmarks in the db
+    private fun addPlaceMarker(bookmark: MapsViewModel.BookMarkerView): Marker? {
+        val marker = map.addMarker(
+            MarkerOptions()
+                .position(bookmark.location)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+                .alpha(0.8f)
+        )
+
+        marker.tag = bookmark
+        return marker
+    }
+
+    private fun displayAllBookmarks(bookmarks: List<MapsViewModel.BookMarkerView>) {
+        bookmarks.forEach { bookmark -> addPlaceMarker(bookmark) }
+    }
+
+    private fun createBookmarkMarkerObserver() {
+        mapsViewModel.getBookMarkerViews()?.observe(this, {
+            map.clear()
+            it?.let { displayAllBookmarks(it) }
+        })
     }
 
     companion object {
