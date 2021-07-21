@@ -14,7 +14,6 @@ import com.raywenderlich.placebook.repository.BookmarkRepo
 import com.raywenderlich.placebook.util.ImageUtils
 
 class MapsViewModel(application: Application): AndroidViewModel(application) {
-    private val TAG = "MapsViewModel"
     private val bookmarkRepo: BookmarkRepo = BookmarkRepo(getApplication())
     private var bookmarks: LiveData<List<BookMarkerView>>? = null
 
