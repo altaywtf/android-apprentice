@@ -29,9 +29,7 @@ class BookmarkRepo(context: Context) {
     fun updateBookmark(bookmark: Bookmark) = bookmarkDao.updateBookmark(bookmark)
 
     val allBookmarks: LiveData<List<Bookmark>>
-        get() {
-            return bookmarkDao.loadAll()
-        }
+        get() = bookmarkDao.loadAll()
 
     private fun buildCategoryMap() = hashMapOf(
         Place.Type.BAKERY to "Restaurant",
@@ -72,7 +70,10 @@ class BookmarkRepo(context: Context) {
         "Shopping" to R.drawable.ic_shopping
     )
 
-    fun getCategoryResourceId(placeCategory: String): Int? {
-        return categoryResourceMap[placeCategory]
+    fun getCategoryResourceId(bookmarkCategory: String): Int? {
+        return categoryResourceMap[bookmarkCategory]
     }
+
+    val categories: List<String>
+        get() = ArrayList(categoryResourceMap.keys)
 }

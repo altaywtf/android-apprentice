@@ -31,6 +31,7 @@ class BookmarkDetailsViewModel(application: Application): AndroidViewModel(appli
             phone = bookmark.phone,
             address = bookmark.address,
             notes =  bookmark.notes,
+            category = bookmark.category
         )
     }
 
@@ -47,11 +48,13 @@ class BookmarkDetailsViewModel(application: Application): AndroidViewModel(appli
         }
 
         if (bookmark != null) {
+            // why?
             // bookmark.id = bookmarkDetailsView.id
             bookmark.name = bookmarkDetailsView.name
             bookmark.phone = bookmarkDetailsView.phone
             bookmark.address = bookmarkDetailsView.address
             bookmark.notes = bookmarkDetailsView.notes
+            bookmark.category = bookmarkDetailsView.category
         }
 
         return bookmark
@@ -64,13 +67,17 @@ class BookmarkDetailsViewModel(application: Application): AndroidViewModel(appli
         }
     }
 
+    fun getCategories() = bookmarkRepo.categories
+
+    fun getCategoryResourceId(category: String) = bookmarkRepo.getCategoryResourceId(category)
 
     data class BookmarkDetailsView(
         var id: Long? = null,
         var name: String = "",
         var phone: String = "",
         var address: String = "",
-        var notes: String = ""
+        var notes: String = "",
+        var category: String = ""
     ) {
         fun getImage(context: Context) = id?.let {
             ImageUtils.loadBitmapFromFile(context, Bookmark.generateImageFileName(it))
