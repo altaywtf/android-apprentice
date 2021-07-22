@@ -31,25 +31,23 @@ import kotlinx.coroutines.launch
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
-    private lateinit var binding: ActivityMapsBinding
-
     private lateinit var map: GoogleMap
     private lateinit var placesClient: PlacesClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private val mapsViewModel by viewModels<MapsViewModel>()
+    private lateinit var dataBinding: ActivityMapsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityMapsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        dataBinding = ActivityMapsBinding.inflate(layoutInflater)
+        setContentView(dataBinding.root)
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
+        setupToolbar()
         setupPlacesClient()
         setupLocationClient()
     }
@@ -74,6 +72,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         map.setOnPoiClickListener { displayPoi(it)  }
         map.setInfoWindowAdapter(BookmarkInfoWindowAdapter(this))
         map.setOnInfoWindowClickListener { handleInfoWindowClick(it) }
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(dataBinding.mainMapView.toolbar)
     }
 
     private fun setupPlacesClient() {
