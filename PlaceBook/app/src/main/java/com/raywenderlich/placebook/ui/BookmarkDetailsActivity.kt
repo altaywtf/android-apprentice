@@ -21,6 +21,7 @@ import com.raywenderlich.placebook.databinding.ActivityBookmarkDetailsBinding
 import com.raywenderlich.placebook.util.ImageUtils
 import com.raywenderlich.placebook.viewmodel.BookmarkDetailsViewModel
 import java.io.File
+import java.net.URLEncoder
 
 class BookmarkDetailsActivity : AppCompatActivity(), PhotoOptionDialogFragment.PhotoDialogOptionListener {
     private lateinit var databinding: ActivityBookmarkDetailsBinding
@@ -33,7 +34,29 @@ class BookmarkDetailsActivity : AppCompatActivity(), PhotoOptionDialogFragment.P
         super.onCreate(savedInstanceState)
         databinding = DataBindingUtil.setContentView(this, R.layout.activity_bookmark_details)
         setupToolbar()
+        setupFab()
         getIntentData()
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(databinding.toolbar)
+    }
+
+    private fun setupFab() {
+        databinding.fab.setOnClickListener { sharePlace() }
+    }
+
+    private fun getIntentData() {
+        val bookmarkId = intent.getLongExtra(MapsActivity.Companion.EXTRA_BOOKMARK_ID, 0)
+
+        bookmarkDetailsViewModel.getBookmark(bookmarkId)?.observe(this, {
+            it?.let {
+                bookmarkDetailsView = it
+                databinding.bookmarkDetailsView = it
+                populateImageView()
+                populateCategoryList()
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -56,10 +79,6 @@ class BookmarkDetailsActivity : AppCompatActivity(), PhotoOptionDialogFragment.P
             else -> super.onOptionsItemSelected(item)
         }
 
-
-    private fun setupToolbar() {
-        setSupportActionBar(databinding.toolbar)
-    }
 
     private fun populateImageView() {
         bookmarkDetailsView?.let {
@@ -101,19 +120,6 @@ class BookmarkDetailsActivity : AppCompatActivity(), PhotoOptionDialogFragment.P
                 }
             }
         }
-    }
-
-    private fun getIntentData() {
-        val bookmarkId = intent.getLongExtra(MapsActivity.Companion.EXTRA_BOOKMARK_ID, 0)
-
-        bookmarkDetailsViewModel.getBookmark(bookmarkId)?.observe(this, {
-            it?.let {
-                bookmarkDetailsView = it
-                databinding.bookmarkDetailsView = it
-                populateImageView()
-                populateCategoryList()
-            }
-        })
     }
 
     private fun saveChanges() {
@@ -239,6 +245,38 @@ class BookmarkDetailsActivity : AppCompatActivity(), PhotoOptionDialogFragment.P
             .setNegativeButton("Cancel", null)
             .create()
             .show()
+    }
+
+    private fun sharePlace() {
+        val bookmarkView = bookmarkDetailsView ?: return
+        var mapUrl = ""
+
+        if (bookmarkView.placeId == null) {
+            val location = URLEncoder
+                .encode("${bookmarkView.latitude}," + "${bookmarkView.longitude}", "utf-8")
+
+            mapUrl = "https://www.google.com/maps/dir/?api=1" + "&destination=$location"
+
+        } else {
+            val name = URLEncoder.encode(bookmarkView.name, "utf-8")
+            mapUrl = "https://www.google.com/maps/dir/?api=1" +
+                    "&destination=$name&destination_place_id=" +
+                    "${bookmarkView.placeId}"
+        }
+
+        val sendIntent = Intent()
+        sendIntent.action = Intent.ACTION_SEND
+        sendIntent.putExtra(
+            Intent.EXTRA_TEXT,
+            "Check out ${bookmarkView.name} at:\n$mapUrl"
+        )
+        sendIntent.putExtra(
+            Intent.EXTRA_SUBJECT,
+            "Sharing ${bookmarkView.name}"
+        )
+        sendIntent.type = "text/plain"
+
+        startActivity(sendIntent)
     }
 
     companion object {

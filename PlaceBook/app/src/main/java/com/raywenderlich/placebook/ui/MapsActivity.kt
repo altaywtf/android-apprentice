@@ -9,6 +9,8 @@ import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -68,6 +70,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         setupNavigationDrawer()
     }
 
+    private fun setupPlacesClient() {
+        Places.initialize(applicationContext, getString(R.string.google_maps_key))
+        placesClient = Places.createClient(this)
+    }
+
+    private fun setupLocationClient() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(dataBinding.mainMapView.toolbar)
+
+        val toggle = ActionBarDrawerToggle(
+            this,
+            dataBinding.drawerLayout,
+            dataBinding.mainMapView.toolbar,
+            R.string.open_drawer,
+            R.string.close_drawer
+        )
+        toggle.syncState()
+    }
+
+    private fun setupNavigationDrawer() {
+        val layoutManager = LinearLayoutManager(this)
+        dataBinding.drawerViewMaps.bookmarkRecyclerView.layoutManager = layoutManager
+        bookmarkListAdapter = BookmarkListAdapter(null, this)
+        dataBinding.drawerViewMaps.bookmarkRecyclerView.adapter = bookmarkListAdapter
+    }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -93,33 +124,37 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun setupToolbar() {
-        setSupportActionBar(dataBinding.mainMapView.toolbar)
+    private fun createBookmarkObserver() {
+        mapsViewModel.getBookmarkViews()?.observe(this, {
+            map.clear()
+            markers.clear()
 
-        val toggle = ActionBarDrawerToggle(
+            it?.let { it ->
+                displayAllBookmarks(it)
+                bookmarkListAdapter.setBookmarkData(it)
+            }
+        })
+    }
+
+    private fun getCurrentLocation() {
+        val locationPermission = ActivityCompat.checkSelfPermission(
             this,
-            dataBinding.drawerLayout,
-            dataBinding.mainMapView.toolbar,
-            R.string.open_drawer,
-            R.string.close_drawer
+            Manifest.permission.ACCESS_FINE_LOCATION
         )
-        toggle.syncState()
-    }
 
-    private fun setupNavigationDrawer() {
-        val layoutManager = LinearLayoutManager(this)
-        dataBinding.drawerViewMaps.bookmarkRecyclerView.layoutManager = layoutManager
-        bookmarkListAdapter = BookmarkListAdapter(null, this)
-        dataBinding.drawerViewMaps.bookmarkRecyclerView.adapter = bookmarkListAdapter
-    }
-
-    private fun setupPlacesClient() {
-        Places.initialize(applicationContext, getString(R.string.google_maps_key))
-        placesClient = Places.createClient(this)
-    }
-
-    private fun setupLocationClient() {
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        if (locationPermission != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermissions()
+        } else {
+            map.isMyLocationEnabled = true
+            fusedLocationClient.lastLocation.addOnCompleteListener {
+                val location = it.result
+                if (location != null) {
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 16.0f))
+                } else {
+                    Log.e(TAG, "No location found")
+                }
+            }
+        }
     }
 
     private fun requestLocationPermissions() {
@@ -144,25 +179,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun getCurrentLocation() {
-        val locationPermission = ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
+    private fun enableUserInteraction() {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+    }
 
-        if (locationPermission != PackageManager.PERMISSION_GRANTED) {
-            requestLocationPermissions()
-        } else {
-            map.isMyLocationEnabled = true
-            fusedLocationClient.lastLocation.addOnCompleteListener {
-                val location = it.result
-                if (location != null) {
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 16.0f))
-                } else {
-                    Log.e(TAG, "No location found")
-                }
-            }
-        }
+    private fun disableUserInteraction() {
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        )
+    }
+
+    private fun showProgress() {
+        dataBinding.mainMapView.progressBar.visibility = ProgressBar.VISIBLE
+        disableUserInteraction()
+    }
+
+    private fun hideProgress() {
+        dataBinding.mainMapView.progressBar.visibility = ProgressBar.GONE
+        enableUserInteraction()
     }
 
     private fun displayPoi(pointOfInterest: PointOfInterest) {
@@ -174,14 +209,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .builder(pointOfInterest.placeId, PLACE_FIELDS)
             .build()
 
+        showProgress()
         placesClient.fetchPlace(request)
             .addOnSuccessListener {
-               displayPoiGetPhotoStep(it.place)
+                displayPoiGetPhotoStep(it.place)
             }
             .addOnFailureListener {
                 if (it is ApiException) {
                     Log.e(TAG, "Place not found: ${it.message}, statusCode: ${it.statusCode}")
                 }
+            }
+            .addOnCompleteListener {
+                hideProgress()
             }
     }
 
@@ -194,6 +233,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .setMaxHeight((resources.getDimensionPixelOffset(R.dimen.default_image_height)))
             .build()
 
+        showProgress()
         placesClient.fetchPhoto(photoRequest)
             .addOnSuccessListener {
                 displayPoiDisplayStep(place, it.bitmap)
@@ -202,6 +242,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 if (it is ApiException) {
                     Log.e(TAG, "Photo not found: ${it.message}, statusCode: ${it.statusCode}")
                 }
+            }
+            .addOnCompleteListener {
+                hideProgress()
             }
     }
 
@@ -277,18 +320,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun displayAllBookmarks(bookmarkViews: List<MapsViewModel.BookmarkView>) {
         bookmarkViews.forEach { bookmarkView -> addPlaceMarker(bookmarkView) }
-    }
-
-    private fun createBookmarkObserver() {
-        mapsViewModel.getBookmarkViews()?.observe(this, {
-            map.clear()
-            markers.clear()
-
-            it?.let { it ->
-                displayAllBookmarks(it)
-                bookmarkListAdapter.setBookmarkData(it)
-            }
-        })
     }
 
     private fun startBookmarkDetails(bookmarkId: Long) {
