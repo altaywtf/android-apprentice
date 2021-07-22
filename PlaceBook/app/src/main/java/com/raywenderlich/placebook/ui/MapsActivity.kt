@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -42,6 +43,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var dataBinding: ActivityMapsBinding
 
     private lateinit var bookmarkListAdapter: BookmarkListAdapter
+
+    private var markers = HashMap<Long, Marker>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -238,6 +241,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    private fun updateMapLocation(location: Location) {
+        var latLng = LatLng(location.latitude, location.longitude)
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16.0f))
+    }
+
+    fun moveToBookmark(bookmark: MapsViewModel.BookmarkView) {
+        dataBinding.drawerLayout.closeDrawer(dataBinding.drawerViewMaps.drawerView)
+        val marker = markers[bookmark.id]
+
+        marker?.showInfoWindow()
+
+        var location = Location("")
+        location.latitude = bookmark.location.latitude
+        location.longitude = bookmark.location.longitude
+
+        updateMapLocation(location)
+    }
+
     // presenting bookmarks in the db
     private fun addPlaceMarker(bookmark: MapsViewModel.BookmarkView): Marker? {
         val marker = map.addMarker(
@@ -250,6 +271,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         )
 
         marker.tag = bookmark
+        bookmark.id?.let { markers.put(it, marker) }
         return marker
     }
 
@@ -260,6 +282,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun createBookmarkObserver() {
         mapsViewModel.getBookmarkViews()?.observe(this, {
             map.clear()
+            markers.clear()
+
             it?.let { it ->
                 displayAllBookmarks(it)
                 bookmarkListAdapter.setBookmarkData(it)
