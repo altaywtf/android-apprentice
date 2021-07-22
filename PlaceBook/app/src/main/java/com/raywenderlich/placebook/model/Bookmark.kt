@@ -24,6 +24,12 @@ data class Bookmark(
         }
     }
 
+    fun deleteImage(context: Context) {
+        id?.let {
+            ImageUtils.deleteImage(context, generateImageFileName(it))
+        }
+    }
+
     companion object {
         fun generateImageFileName(id: Long): String {
             return "bookmark-$id.png"

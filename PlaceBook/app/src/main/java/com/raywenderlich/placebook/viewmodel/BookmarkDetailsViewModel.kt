@@ -38,7 +38,9 @@ class BookmarkDetailsViewModel(application: Application): AndroidViewModel(appli
     private fun mapBookmarkToBookmarkDetailsView(bookmarkId: Long) {
         val bookmark = bookmarkRepo.getLiveBookmark(bookmarkId)
         bookmarkDetailsView = Transformations.map(bookmark) {
-            bookmarkToBookmarkDetailsView(it)
+            it?.let {
+                bookmarkToBookmarkDetailsView(it)
+            }
         }
     }
 
@@ -64,6 +66,13 @@ class BookmarkDetailsViewModel(application: Application): AndroidViewModel(appli
         GlobalScope.launch {
             val bookmark = bookmarkDetailsViewToBookmark(bookmarkDetailsView)
             bookmark?.let { bookmarkRepo.updateBookmark(it) }
+        }
+    }
+
+    fun deleteBookmark(bookmarkDetailsView: BookmarkDetailsView) {
+        GlobalScope.launch {
+            val bookmark = bookmarkDetailsView.id?.let { bookmarkRepo.getBookmark(it) }
+            bookmark?.let { bookmarkRepo.deleteBookmark(it) }
         }
     }
 

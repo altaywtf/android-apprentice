@@ -39,6 +39,12 @@ object ImageUtils {
         return BitmapFactory.decodeFile(filePath)
     }
 
+    fun deleteImage(context: Context, filename: String) {
+        val dir = context.filesDir
+        val file = File(dir, filename)
+        file.delete()
+    }
+
     @Throws(IOException::class)
     fun createUniqueImageFile(context: Context): File {
         val timeStamp = SimpleDateFormat("yyyyMMddHHmmss").format(Date())

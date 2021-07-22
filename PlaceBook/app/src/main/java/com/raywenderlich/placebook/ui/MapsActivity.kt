@@ -1,6 +1,7 @@
 package com.raywenderlich.placebook.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -8,10 +9,13 @@ import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException
+import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.*
 
@@ -22,9 +26,12 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.net.FetchPhotoRequest
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.raywenderlich.placebook.R
 import com.raywenderlich.placebook.adapter.BookmarkInfoWindowAdapter
 import com.raywenderlich.placebook.adapter.BookmarkListAdapter
@@ -81,6 +88,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         map.setOnPoiClickListener { displayPoi(it)  }
         map.setInfoWindowAdapter(BookmarkInfoWindowAdapter(this))
         map.setOnInfoWindowClickListener { handleInfoWindowClick(it) }
+        dataBinding.mainMapView.fab.setOnClickListener {
+            searchAtCurrentLocation()
+        }
     }
 
     private fun setupToolbar() {
@@ -160,19 +170,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun displayPoiGetPlaceStep(pointOfInterest: PointOfInterest) {
-        val placeId = pointOfInterest.placeId
-        val placeFields = listOf(
-            Place.Field.ID,
-            Place.Field.NAME,
-            Place.Field.PHONE_NUMBER,
-            Place.Field.ADDRESS,
-            Place.Field.LAT_LNG,
-            Place.Field.PHOTO_METADATAS,
-            Place.Field.TYPES
-        )
-
         val request = FetchPlaceRequest
-            .builder(placeId, placeFields)
+            .builder(pointOfInterest.placeId, PLACE_FIELDS)
             .build()
 
         placesClient.fetchPlace(request)
@@ -298,10 +297,55 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         startActivity(intent)
     }
 
+    private fun searchAtCurrentLocation() {
+        val bounds = RectangularBounds.newInstance(map.projection.visibleRegion.latLngBounds)
+
+        try {
+            val intent = Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, PLACE_FIELDS)
+                .setLocationBias(bounds)
+                .build(this)
+
+            startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE)
+        } catch (e: GooglePlayServicesRepairableException) {
+            Toast
+                .makeText(this, "Problems searching", Toast.LENGTH_LONG)
+                .show()
+        } catch (e: GooglePlayServicesNotAvailableException) {
+            Toast
+                .makeText(this, "Google Play Services is unavailable", Toast.LENGTH_LONG)
+                .show()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            AUTOCOMPLETE_REQUEST_CODE ->
+                if (resultCode == Activity.RESULT_OK && data != null) {
+                    val place = Autocomplete.getPlaceFromIntent(data)
+                    val location = Location("")
+                    location.latitude = place.latLng?.latitude ?: 0.0
+                    location.longitude = place.latLng?.longitude ?: 0.0
+                    updateMapLocation(location)
+                    displayPoiGetPhotoStep(place)
+                }
+        }
+    }
+
     companion object {
         const val EXTRA_BOOKMARK_ID = "com.raywenderlich.placebook.EXTRA_BOOKMARK_ID"
         private const val REQUEST_LOCATION = 1
+        private const val AUTOCOMPLETE_REQUEST_CODE = 2
         private const val TAG = "MapsActivity"
+        private val PLACE_FIELDS = listOf(
+            Place.Field.ID,
+            Place.Field.NAME,
+            Place.Field.PHONE_NUMBER,
+            Place.Field.PHOTO_METADATAS,
+            Place.Field.LAT_LNG,
+            Place.Field.ADDRESS,
+            Place.Field.TYPES
+        )
     }
 
     class PlaceInfo(val place: Place? = null, val image: Bitmap? = null)

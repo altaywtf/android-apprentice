@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.databinding.DataBindingUtil
 import com.raywenderlich.placebook.R
@@ -44,6 +45,11 @@ class BookmarkDetailsActivity : AppCompatActivity(), PhotoOptionDialogFragment.P
         when (item.itemId) {
             R.id.action_save -> {
                 saveChanges()
+                true
+            }
+
+            R.id.action_delete -> {
+                deleteBookmark()
                 true
             }
 
@@ -221,6 +227,19 @@ class BookmarkDetailsActivity : AppCompatActivity(), PhotoOptionDialogFragment.P
         }
     }
 
+    private fun deleteBookmark() {
+        val bookmarkView = bookmarkDetailsView ?: return
+
+        AlertDialog.Builder(this)
+            .setMessage("Delete?")
+            .setPositiveButton("Ok") { _, _ ->
+                bookmarkDetailsViewModel.deleteBookmark(bookmarkView)
+                finish()
+            }
+            .setNegativeButton("Cancel", null)
+            .create()
+            .show()
+    }
 
     companion object {
         private const val REQUEST_CAPTURE_IMAGE = 1
