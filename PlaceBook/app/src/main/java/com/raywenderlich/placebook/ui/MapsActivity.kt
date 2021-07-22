@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.*
@@ -64,7 +65,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         setupMapListeners()
-        createBookmarkMarkerObserver()
+        createBookmarkObserver()
         getCurrentLocation()
     }
 
@@ -76,6 +77,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun setupToolbar() {
         setSupportActionBar(dataBinding.mainMapView.toolbar)
+
+        val toggle = ActionBarDrawerToggle(
+            this,
+            dataBinding.drawerLayout,
+            dataBinding.mainMapView.toolbar,
+            R.string.open_drawer,
+            R.string.close_drawer
+        )
+        toggle.syncState()
     }
 
     private fun setupPlacesClient() {
@@ -206,10 +216,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 marker.remove()
             }
 
-            is MapsViewModel.BookMarkerView -> {
+            is MapsViewModel.BookmarkView -> {
                 marker.hideInfoWindow()
-                val bookmarkMarkerView = (marker.tag as MapsViewModel.BookMarkerView)
-                bookmarkMarkerView.id?.let {
+                val bookmarkView = (marker.tag as MapsViewModel.BookmarkView)
+                bookmarkView.id?.let {
                     startBookmarkDetails(it)
                 }
             }
@@ -217,7 +227,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     // presenting bookmarks in the db
-    private fun addPlaceMarker(bookmark: MapsViewModel.BookMarkerView): Marker? {
+    private fun addPlaceMarker(bookmark: MapsViewModel.BookmarkView): Marker? {
         val marker = map.addMarker(
             MarkerOptions()
                 .position(bookmark.location)
@@ -231,14 +241,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         return marker
     }
 
-    private fun displayAllBookmarks(bookmarks: List<MapsViewModel.BookMarkerView>) {
+    private fun displayAllBookmarks(bookmarks: List<MapsViewModel.BookmarkView>) {
         bookmarks.forEach { bookmark -> addPlaceMarker(bookmark) }
     }
 
-    private fun createBookmarkMarkerObserver() {
-        mapsViewModel.getBookMarkerViews()?.observe(this, {
+    private fun createBookmarkObserver() {
+        mapsViewModel.getBookmarkViews()?.observe(this, {
             map.clear()
-            it?.let { displayAllBookmarks(it) }
+            it?.let { bookmarkView ->
+                displayAllBookmarks(bookmarkView)
+            }
         })
     }
 

@@ -25,8 +25,8 @@ class BookmarkInfoWindowAdapter(val context: Activity): InfoWindowAdapter {
                 binding.photo.setImageBitmap(image)
             }
 
-            is MapsViewModel.BookMarkerView -> {
-                val image = (marker.tag as MapsViewModel.BookMarkerView).getImage(context)
+            is MapsViewModel.BookmarkView -> {
+                val image = (marker.tag as MapsViewModel.BookmarkView).getImage(context)
                 binding.photo.setImageBitmap(image)
             }
         }

@@ -3,7 +3,6 @@ package com.raywenderlich.placebook.viewmodel
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
@@ -15,7 +14,7 @@ import com.raywenderlich.placebook.util.ImageUtils
 
 class MapsViewModel(application: Application): AndroidViewModel(application) {
     private val bookmarkRepo: BookmarkRepo = BookmarkRepo(getApplication())
-    private var bookmarks: LiveData<List<BookMarkerView>>? = null
+    private var bookmarks: LiveData<List<BookmarkView>>? = null
 
     fun addBookmarkFromPlace(place: Place, image: Bitmap?) {
         val bookmark = bookmarkRepo.createBookmark()
@@ -32,8 +31,8 @@ class MapsViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    private fun bookmarkToMarkerView(bookmark: Bookmark): BookMarkerView {
-        return BookMarkerView(
+    private fun bookmarkToBookmarkView(bookmark: Bookmark): BookmarkView {
+        return BookmarkView(
             id = bookmark.id,
             location = LatLng(bookmark.latitude, bookmark.longitude),
             name = bookmark.name,
@@ -41,21 +40,21 @@ class MapsViewModel(application: Application): AndroidViewModel(application) {
         )
     }
 
-    private fun mapBookmarksToMarkerView() {
+    private fun mapBookmarksToBookmarkView() {
         bookmarks = Transformations.map(bookmarkRepo.allBookmarks) {
-            it.map { bookmark -> bookmarkToMarkerView(bookmark) }
+            it.map { bookmark -> bookmarkToBookmarkView(bookmark) }
         }
     }
 
-    fun getBookMarkerViews(): LiveData<List<BookMarkerView>>? {
+    fun getBookmarkViews(): LiveData<List<BookmarkView>>? {
         if (bookmarks == null) {
-            mapBookmarksToMarkerView()
+            mapBookmarksToBookmarkView()
         }
 
         return bookmarks
     }
 
-    data class BookMarkerView(
+    data class BookmarkView(
         var id: Long? = null,
         var location: LatLng = LatLng(0.0, 0.0),
         var name: String = "",
