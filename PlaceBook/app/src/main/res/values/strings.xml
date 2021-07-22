@@ -12,4 +12,10 @@
 
     <string name="open_drawer">Open Drawer</string>
     <string name="close_drawer">Close Drawer</string>
+
+    <string name="photo_option_title">Photo Option</string>
+    <string name="photo_option_camera">Camera</string>
+    <string name="photo_option_gallery">Gallery</string>
+
+    <string name="cancel">Cancel</string>
 </resources>

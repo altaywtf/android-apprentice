@@ -11,7 +11,7 @@ import com.raywenderlich.placebook.R
 import com.raywenderlich.placebook.databinding.ActivityBookmarkDetailsBinding
 import com.raywenderlich.placebook.viewmodel.BookmarkDetailsViewModel
 
-class BookmarkDetailsActivity : AppCompatActivity() {
+class BookmarkDetailsActivity : AppCompatActivity(), PhotoOptionDialogFragment.PhotoDialogOptionListener {
     private lateinit var databinding: ActivityBookmarkDetailsBinding
     private val bookmarkDetailsViewModel by viewModels<BookmarkDetailsViewModel>()
     private var bookmarkDetailsView: BookmarkDetailsViewModel.BookmarkDetailsView? = null
@@ -48,6 +48,9 @@ class BookmarkDetailsActivity : AppCompatActivity() {
             val placeImage = it.getImage(this)
             placeImage?.let {
                 databinding.imageViewPlace.setImageBitmap(placeImage)
+                databinding.imageViewPlace.setOnClickListener {
+                    replaceImage()
+                }
             }
         }
     }
@@ -77,5 +80,18 @@ class BookmarkDetailsActivity : AppCompatActivity() {
         }
 
         finish()
+    }
+
+    private fun replaceImage() {
+        val photoOptionDialogFragment = PhotoOptionDialogFragment.newInstance(this)
+        photoOptionDialogFragment?.show(supportFragmentManager, "photoOptionDialog")
+    }
+
+    override fun onCaptureClick() {
+        TODO("Not yet implemented")
+    }
+
+    override fun onPickClick() {
+        TODO("Not yet implemented")
     }
 }
