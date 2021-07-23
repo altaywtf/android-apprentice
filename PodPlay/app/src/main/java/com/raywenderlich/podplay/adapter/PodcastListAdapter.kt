@@ -18,16 +18,16 @@ class PodcastListAdapter(
     }
 
     inner class ViewHolder(
-        dataBinding: SearchItemBinding,
+        binding: SearchItemBinding,
         private val podcastListAdapterListener: PodcastListAdapterListener
-    ): RecyclerView.ViewHolder(dataBinding.root) {
+    ): RecyclerView.ViewHolder(binding.root) {
         var podcastSummaryViewData: PodcastSummaryViewData? = null
-        val nameTextView = dataBinding.podcastNameTextView
-        val lastUpdatedTextView = dataBinding.podcastLastUpdatedTextView
-        val podcastImageView = dataBinding.podcastImage
+        val nameTextView = binding.podcastNameTextView
+        val lastUpdatedTextView = binding.podcastLastUpdatedTextView
+        val podcastImageView = binding.podcastImage
 
         init {
-            dataBinding.searchItem.setOnClickListener {
+            binding.searchItem.setOnClickListener {
                 podcastSummaryViewData?.let {
                     podcastListAdapterListener.onShowDetails(it)
                 }
