@@ -49,7 +49,7 @@ class PodcastViewModel(application: Application): AndroidViewModel(application) 
         episodes = episodeToEpisodesView(podcast.episodes),
     )
 
-    fun getPodcast(podcastSummaryViewData: SearchViewModel.PodcastSummaryViewData): PodcastViewData? {
+    suspend fun getPodcast(podcastSummaryViewData: SearchViewModel.PodcastSummaryViewData): PodcastViewData? {
         val repo = podcastRepo ?: return null
         val feedUrl = podcastSummaryViewData.feedUrl ?: return null
         val podcast = repo.getPodcast(feedUrl) ?: return null

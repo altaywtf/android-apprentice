@@ -20,6 +20,7 @@ import com.raywenderlich.podplay.databinding.ActivityPodcastBinding
 import com.raywenderlich.podplay.repository.ItunesRepo
 import com.raywenderlich.podplay.repository.PodcastRepo
 import com.raywenderlich.podplay.service.ItunesService
+import com.raywenderlich.podplay.service.RssFeedService
 import com.raywenderlich.podplay.viewmodel.PodcastViewModel
 import com.raywenderlich.podplay.viewmodel.SearchViewModel
 import kotlinx.coroutines.Dispatchers
@@ -46,9 +47,8 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapt
     }
 
     private fun setupViewModels() {
-        val service = ItunesService.instance
-        searchViewModel.itunesRepo = ItunesRepo(service)
-        podcastViewModel.podcastRepo = PodcastRepo()
+        searchViewModel.itunesRepo = ItunesRepo(ItunesService.instance)
+        podcastViewModel.podcastRepo = PodcastRepo(RssFeedService.instance)
     }
 
     private fun setupRootView() {
@@ -115,8 +115,10 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapt
 
     private fun performSearch(term: String) {
         showProgressBar()
+
         GlobalScope.launch {
             val results = searchViewModel.searchPodcasts(term)
+
             withContext(Dispatchers.Main) {
                 hideProgressBar()
                 binding.toolbar.title = term
@@ -175,14 +177,19 @@ class PodcastActivity : AppCompatActivity(), PodcastListAdapter.PodcastListAdapt
         var feedUrl = podcastSummaryViewData?.feedUrl ?: return
 
         showProgressBar()
-        val podcast = podcastViewModel.getPodcast(podcastSummaryViewData)
-        hideProgressBar()
+        GlobalScope.launch {
+            val podcast = podcastViewModel.getPodcast(podcastSummaryViewData)
 
-        if (podcast == null) {
-            return showError("Error loading feed $feedUrl")
+            withContext(Dispatchers.Main) {
+                hideProgressBar()
+                
+                if (podcast == null) {
+                    showError("Error loading feed $feedUrl")
+                } else {
+                    showDetailsFragment()
+                }
+            }
         }
-
-        showDetailsFragment()
     }
 
     companion object {

@@ -10,7 +10,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PodPlay.NoActionBar">
+        android:theme="@style/Theme.PodPlay.NoActionBar"
+        android:usesCleartextTraffic="true">
         <activity android:name=".ui.PodcastActivity" android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
