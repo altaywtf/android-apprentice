@@ -52,7 +52,13 @@ class PodcastViewModel(application: Application): AndroidViewModel(application) 
     suspend fun getPodcast(podcastSummaryViewData: SearchViewModel.PodcastSummaryViewData): PodcastViewData? {
         val repo = podcastRepo ?: return null
         val feedUrl = podcastSummaryViewData.feedUrl ?: return null
+
         val podcast = repo.getPodcast(feedUrl) ?: return null
+        // -- this is ugly
+        podcast.feedTitle = podcastSummaryViewData.name ?: ""
+        podcast.imageUrl = podcastSummaryViewData.imageUrl ?: ""
+        // --
+
         activePodcastViewData = podcastToPodcastView(podcast)
         return activePodcastViewData
     }
