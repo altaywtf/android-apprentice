@@ -19,4 +19,7 @@ object DateUtils {
         val inFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.getDefault())
         return inFormat.parse(date) ?: Date()
     }
+
+    fun dateToShortDate(date: Date): String =
+        DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault()).format(date)
 }
